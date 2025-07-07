@@ -1,6 +1,7 @@
 package com.example.openglfirstdemo
 
 import android.app.ActivityManager
+import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
 import android.opengl.GLSurfaceView
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.example.openglfirstdemo.util.TextResReader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -31,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
         if (isSupportEs2()) {
             gLView.setEGLContextClientVersion(2)
-            gLView.setRenderer(MyRender())
+            gLView.setRenderer(MyRender(this))
             renderSet = true
         }
 
@@ -65,13 +67,13 @@ class MainActivity : AppCompatActivity() {
     /**
      * GLSurfaceView在后台线程中执⾏渲染
      */
-    class MyRender() : Renderer {
-        val BYTES_FLOAT = 4
+    class MyRender(val context: Context) : Renderer {
+        private val BYTES_FLOAT = 4
 
 
         //顶点属性数组
         //逆时针顺序排列顶点=卷曲顺序,可以优化性能
-        val tableVerticesWithTriangles: Array<Float> = arrayOf(
+        private val tableVerticesWithTriangles: Array<Float> = arrayOf(
             //Triangle 1
             0f, 0f,
             9f, 14f,
@@ -105,6 +107,10 @@ class MainActivity : AppCompatActivity() {
 
         override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
             GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
+            val vertexShaderSource =
+                TextResReader.readTextFromResource(context, R.raw.simple_vertex_shader)
+            val fragmentShaderSource =
+                TextResReader.readTextFromResource(context, R.raw.simple_fragment_shader)
         }
 
         override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
