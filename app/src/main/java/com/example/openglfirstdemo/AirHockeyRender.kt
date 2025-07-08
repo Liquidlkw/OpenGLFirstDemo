@@ -68,6 +68,7 @@ class AirHockeyRender(val context: Context) : Renderer {
 
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        //设置清屏颜色
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
         val vertexShaderSource =
             TextResReader.readTextFromResource(context, R.raw.simple_vertex_shader)
@@ -83,17 +84,21 @@ class AirHockeyRender(val context: Context) : Renderer {
         GLES20.glUseProgram(program)
 
         //一旦程序链接 就可以获取程序中的attribute和uniform的位置！
+
         //获得uniform的位置
         //⼀个uniform的位置在⼀个程序对象中是唯⼀的,稍后要更新uniform的值会用到
         uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR)
         //获得attribute的位置
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITITON)
+
         //关联attribute和顶点数据数组
         //设置顶点数据缓冲区(vertex buffer)的读取位置回到起始位置(0)。
         vertexData.position(0)
         //把顶点数据数组绑定到attribute上
         GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT, GLES20.GL_FLOAT, false, 0, vertexData)
 
+        //启用attribute:告诉openGl可以从vertexData读取数据了
+        GLES20.glEnableVertexAttribArray(aPositionLocation)
 
     }
 
@@ -102,7 +107,9 @@ class AirHockeyRender(val context: Context) : Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        //清空屏幕 触发glClearColor
+        //清屏
         GLES20.glClear(GL_COLOR_BUFFER_BIT)
+
+        //draw  table
     }
 }
