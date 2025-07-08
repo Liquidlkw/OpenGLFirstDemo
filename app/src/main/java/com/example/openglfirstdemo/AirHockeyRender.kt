@@ -64,6 +64,9 @@ class AirHockeyRender(val context: Context) : Renderer {
         val fragmentShader:Int = ShaderHelper.compileFragmentShader(fragmentShaderSource)
 
         program = ShaderHelper.linkProgram(vertexShader, fragmentShader)
+        ShaderHelper.validateProgram(program)
+        //把程序装到openGl
+        GLES20.glUseProgram(program)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {

@@ -94,5 +94,13 @@ object ShaderHelper {
         return programObjectId
     }
 
+    fun validateProgram(programObjectId: Int): Boolean {
+        GLES20.glValidateProgram(programObjectId)
+        val validateStatus = IntArray(1)
+        GLES20.glGetProgramiv(programObjectId, GLES20.GL_VALIDATE_STATUS, validateStatus, 0)
+        Log.d(TAG, "validateProgram: Result of validating program: $validateStatus")
+        return validateStatus[0] != 0
+    }
+
 
 }
