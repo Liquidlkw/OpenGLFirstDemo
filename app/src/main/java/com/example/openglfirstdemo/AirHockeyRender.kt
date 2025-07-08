@@ -17,7 +17,7 @@ import javax.microedition.khronos.opengles.GL10
  */
 class AirHockeyRender(val context: Context) : Renderer {
     private val BYTES_FLOAT = 4
-
+    private var program: Int = 0
 
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
@@ -63,7 +63,7 @@ class AirHockeyRender(val context: Context) : Renderer {
         val vertexShader:Int= ShaderHelper.compileVertexShader(vertexShaderSource)
         val fragmentShader:Int = ShaderHelper.compileFragmentShader(fragmentShaderSource)
 
-
+        program = ShaderHelper.linkProgram(vertexShader, fragmentShader)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
