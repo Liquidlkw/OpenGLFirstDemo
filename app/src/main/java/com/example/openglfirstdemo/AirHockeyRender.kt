@@ -16,6 +16,13 @@ import javax.microedition.khronos.opengles.GL10
  * GLSurfaceView在后台线程中执⾏渲染
  */
 class AirHockeyRender(val context: Context) : Renderer {
+
+
+    private val U_COLOR = "u_Color"
+    private var uColorLocation: Int = 0
+
+
+
     private val BYTES_FLOAT = 4
     private var program: Int = 0
 
@@ -67,6 +74,10 @@ class AirHockeyRender(val context: Context) : Renderer {
         ShaderHelper.validateProgram(program)
         //把程序装到openGl
         GLES20.glUseProgram(program)
+
+        //获得uniform的位置
+        //⼀个uniform的位置在⼀个程序对象中是唯⼀的,稍后要更新uniform的值会用到
+        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {

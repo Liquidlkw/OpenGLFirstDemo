@@ -8,11 +8,17 @@ import android.util.Log
 object ShaderHelper {
     private const val TAG = "ShaderHelper"
 
+    /**
+     * @param shaderCode 顶点shader的源码
+     */
     fun compileVertexShader(shaderCode: String): Int {
         return compileShader(GL_VERTEX_SHADER, shaderCode)
 
     }
 
+    /**
+     * @param shaderCode 片段shader的源码
+     */
     fun compileFragmentShader(shaderCode: String): Int {
         return compileShader(GL_FRAGMENT_SHADER, shaderCode)
     }
@@ -24,7 +30,7 @@ object ShaderHelper {
      *
      * @return shader的id
      */
-    fun compileShader(type: Int, shaderCode: String): Int {
+    private fun compileShader(type: Int, shaderCode: String): Int {
         //整个id是openGl对象的引用，无论什么时候想要引用这个对象，都必须使用这个id
         val shaderObjectId = GLES20.glCreateShader(type)
         if (shaderObjectId == 0) {
