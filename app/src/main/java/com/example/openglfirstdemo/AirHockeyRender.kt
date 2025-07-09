@@ -34,18 +34,17 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     //一个顶点有2个分量
     private val POSITION_COMPONENT_COUNT = 2
+
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
     private val tableVerticesWithTriangles: FloatArray = floatArrayOf(
-        //Triangle 1
-        -0.5f, -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f,
-
-        //Triangle 2
+        //三角扇-table
+        0.0f, 0.0f,
         -0.5f, -0.5f,
         0.5f, -0.5f,
         0.5f, 0.5f,
+        -0.5f, 0.5f,
+        -0.5f, -0.5f,
 
         //Line 1
         -0.5f, 0f,
@@ -76,8 +75,8 @@ class AirHockeyRender(val context: Context) : Renderer {
         val fragmentShaderSource =
             TextResReader.readTextFromResource(context, R.raw.simple_fragment_shader)
 
-        val vertexShader:Int= ShaderHelper.compileVertexShader(vertexShaderSource)
-        val fragmentShader:Int = ShaderHelper.compileFragmentShader(fragmentShaderSource)
+        val vertexShader: Int = ShaderHelper.compileVertexShader(vertexShaderSource)
+        val fragmentShader: Int = ShaderHelper.compileFragmentShader(fragmentShaderSource)
 
         program = ShaderHelper.linkProgram(vertexShader, fragmentShader)
         ShaderHelper.validateProgram(program)
@@ -96,7 +95,14 @@ class AirHockeyRender(val context: Context) : Renderer {
         //设置顶点数据缓冲区(vertex buffer)的读取位置回到起始位置(0)。
         vertexData.position(0)
         //把顶点数据数组绑定到attribute上
-        GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT, GLES20.GL_FLOAT, false, 0, vertexData)
+        GLES20.glVertexAttribPointer(
+            aPositionLocation,
+            POSITION_COMPONENT_COUNT,
+            GLES20.GL_FLOAT,
+            false,
+            0,
+            vertexData
+        )
 
         //启用attribute:告诉openGl可以从vertexData读取数据了
         GLES20.glEnableVertexAttribArray(aPositionLocation)
@@ -115,7 +121,7 @@ class AirHockeyRender(val context: Context) : Renderer {
         //跟新uColorLocation的值为白色
         GLES20.glUniform4f(uColorLocation, 1f, 1f, 1f, 1f)
         //绘制table：使用前6个顶点绘制2个三角形
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 6)
 
         //2.绘制分割线
         //跟新uColorLocation的值为红色
