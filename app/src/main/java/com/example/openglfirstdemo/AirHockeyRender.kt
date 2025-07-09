@@ -17,6 +17,7 @@ import javax.microedition.khronos.opengles.GL10
  */
 class AirHockeyRender(val context: Context) : Renderer {
 
+    //原来a代表attribute,u代表uniform啊
     //--------------------vertex shader Start--------------------
     private val A_POSITITON = "a_Position"
     private var aPositionLocation: Int = 0
@@ -37,22 +38,22 @@ class AirHockeyRender(val context: Context) : Renderer {
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
     private val tableVerticesWithTriangles: Array<Float> = arrayOf(
         //Triangle 1
-        0f, 0f,
-        9f, 14f,
-        0f, 14f,
+        -0.5f, -0.5f,
+        0.5f, 0.5f,
+        -0.5f, 0.5f,
 
         //Triangle 2
-        0f, 0f,
-        9f, 0f,
-        9f, 14f,
+        -0.5f, -0.5f,
+        0.5f, -0.5f,
+        0.5f, 0.5f,
 
         //Line 1
-        0f, 7f,
-        9f, 7f,
+        -0.5f, 0f,
+        0.5f, 0f,
 
         // ⽊槌
-        4.5f, 2f,
-        4.5f, 12f
+        0f, -0.25f,
+        0f, 0.25f,
     )
 
     //把tableVerticesWithTriangles从jvm复制到了本地内存
@@ -69,7 +70,7 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         //设置清屏颜色
-        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
+        GLES20.glClearColor(0f, 0f, 0f, 0f)
         val vertexShaderSource =
             TextResReader.readTextFromResource(context, R.raw.simple_vertex_shader)
         val fragmentShaderSource =
@@ -107,9 +108,27 @@ class AirHockeyRender(val context: Context) : Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        //清屏
+        //1.清屏
         GLES20.glClear(GL_COLOR_BUFFER_BIT)
 
-        //draw  table
+        //2.绘制table
+        //跟新uColorLocation的值为白色
+        GLES20.glUniform4f(uColorLocation, 1f, 1f, 1f, 1f)
+        //绘制table：使用前6个顶点绘制2个三角形
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
+
+        //2.绘制分割线
+        //跟新uColorLocation的值为红色
+        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
+        //绘制line:使用第6个顶点和第7个顶点绘制1个线段
+        GLES20.glDrawArrays(GLES20.GL_LINES, 6, 2)
+
+        //3.绘制2个木锥
+        GLES20.glUniform4f(uColorLocation, 0f, 0f, 1f, 1f)
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 8, 1)
+        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
+        GLES20.glDrawArrays(GLES20.GL_POINTS, 9, 1)
+
+
     }
 }
