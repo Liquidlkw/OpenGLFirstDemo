@@ -36,7 +36,7 @@ class AirHockeyRender(val context: Context) : Renderer {
     private val POSITION_COMPONENT_COUNT = 2
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
-    private val tableVerticesWithTriangles: Array<Float> = arrayOf(
+    private val tableVerticesWithTriangles: FloatArray = floatArrayOf(
         //Triangle 1
         -0.5f, -0.5f,
         0.5f, 0.5f,
@@ -64,7 +64,7 @@ class AirHockeyRender(val context: Context) : Renderer {
         .allocateDirect(tableVerticesWithTriangles.size * BYTES_FLOAT)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer().apply {
-            put(tableVerticesWithTriangles.toFloatArray())
+            put(tableVerticesWithTriangles)
         }
 
 
