@@ -41,7 +41,7 @@ class AirHockeyRender(val context: Context) : Renderer {
    //颜色分量 r,g,b
     private val COLOR_COMPONENT_COUNT = 3
 
-    //步长:每个顶点的字节数
+    //步长:每个顶点的字节数 = 2个位置分量 + 3个颜色分量 用于给一个数组区分元组大小
     private val STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_FLOAT
 
 
@@ -51,7 +51,7 @@ class AirHockeyRender(val context: Context) : Renderer {
         //Order of coordinates: X, Y, Z,R,G,B
 
         //Triangle Fan
-         0.0f,  0.0f,0.7f,0.7f,0.7f,
+         0.0f,  0.0f,1f,1f,1f,
         -0.5f, -0.5f,0.7f,0.7f,0.7f,
          0.5f, -0.5f,0.7f,0.7f,0.7f,
          0.5f,  0.5f,0.7f,0.7f,0.7f,
@@ -97,11 +97,15 @@ class AirHockeyRender(val context: Context) : Renderer {
 
         //一旦程序链接 就可以获取程序中的attribute和uniform的位置！
 
-        //获得uniform的位置
-        //⼀个uniform的位置在⼀个程序对象中是唯⼀的,稍后要更新uniform的值会用到
-        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR)
+
         //获得attribute的位置
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITITON)
+        //获得uniform的位置
+        //⼀个uniform的位置在⼀个程序对象中是唯⼀的,稍后要更新uniform的值会用到
+//        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR)
+
+        //获得attribute的位置 varying a_Color
+        aColorLocation = GLES20.glGetAttribLocation(program, A_COLOR)
 
         //关联attribute和顶点数据数组
         //设置顶点数据缓冲区(vertex buffer)的读取位置回到起始位置(0)。
@@ -112,12 +116,31 @@ class AirHockeyRender(val context: Context) : Renderer {
             POSITION_COMPONENT_COUNT,
             GLES20.GL_FLOAT,
             false,
-            0,
+            STRIDE,
             vertexData
         )
-
         //启用attribute:告诉openGl可以从vertexData读取数据了
         GLES20.glEnableVertexAttribArray(aPositionLocation)
+
+
+        //1.从哪里开始读
+        //设置顶点数据缓冲区(vertex buffer)的读取位置回到起始位置(2)，第一个颜色的位置。
+        vertexData.position(POSITION_COMPONENT_COUNT)
+
+        //2.怎么读 (关联数据)
+        //告诉OpenGL如何从你的缓冲区里读取每个顶点的属性数据，比如顶点坐标、颜色、法线等
+        GLES20.glVertexAttribPointer(
+            /*shader attribute location */aColorLocation,
+            /*components count */COLOR_COMPONENT_COUNT,
+            /*type */GLES20.GL_FLOAT,
+            /*normalized */false,
+            /*stride */STRIDE,
+            /*buffer */vertexData
+        )
+
+        //3.开始读
+        //启用attribute:告诉openGl可以从vertexData读取数据了
+        GLES20.glEnableVertexAttribArray(aColorLocation)
 
     }
 
@@ -131,20 +154,20 @@ class AirHockeyRender(val context: Context) : Renderer {
 
         //2.绘制table
         //跟新uColorLocation的值为白色
-        GLES20.glUniform4f(uColorLocation, 1f, 1f, 1f, 1f)
+//        GLES20.glUniform4f(uColorLocation, 1f, 1f, 1f, 1f)
         //绘制table：使用前6个顶点绘制2个三角形
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 6)
 
         //2.绘制分割线
         //跟新uColorLocation的值为红色
-        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
+//        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
         //绘制line:使用第6个顶点和第7个顶点绘制1个线段
         GLES20.glDrawArrays(GLES20.GL_LINES, 6, 2)
 
         //3.绘制2个木锥
-        GLES20.glUniform4f(uColorLocation, 0f, 0f, 1f, 1f)
+//        GLES20.glUniform4f(uColorLocation, 0f, 0f, 1f, 1f)
         GLES20.glDrawArrays(GLES20.GL_POINTS, 8, 1)
-        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
+//        GLES20.glUniform4f(uColorLocation, 1f, 0f, 0f, 1f)
         GLES20.glDrawArrays(GLES20.GL_POINTS, 9, 1)
 
 
