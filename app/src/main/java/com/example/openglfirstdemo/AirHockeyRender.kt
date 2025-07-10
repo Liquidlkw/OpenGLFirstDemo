@@ -21,6 +21,9 @@ class AirHockeyRender(val context: Context) : Renderer {
     //--------------------vertex shader Start--------------------
     private val A_POSITITON = "a_Position"
     private var aPositionLocation: Int = 0
+
+    private val A_COLOR ="a_Color"
+    private var aColorLocation: Int = 0
     //--------------------vertex shader End--------------------
 
     //--------------------fragment shader Start--------------------
@@ -32,27 +35,36 @@ class AirHockeyRender(val context: Context) : Renderer {
     private val BYTES_FLOAT = 4
     private var program: Int = 0
 
-    //一个顶点有2个分量
+    //每个顶点有5个分量 x,y,r,g,b
+    //位置分量 x,y
     private val POSITION_COMPONENT_COUNT = 2
+   //颜色分量 r,g,b
+    private val COLOR_COMPONENT_COUNT = 3
+
+    //步长:每个顶点的字节数
+    private val STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_FLOAT
+
 
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
     private val tableVerticesWithTriangles: FloatArray = floatArrayOf(
-        //三角扇-table
-        0.0f, 0.0f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f,
-        -0.5f, -0.5f,
+        //Order of coordinates: X, Y, Z,R,G,B
+
+        //Triangle Fan
+         0.0f,  0.0f,0.7f,0.7f,0.7f,
+        -0.5f, -0.5f,0.7f,0.7f,0.7f,
+         0.5f, -0.5f,0.7f,0.7f,0.7f,
+         0.5f,  0.5f,0.7f,0.7f,0.7f,
+        -0.5f,  0.5f,0.7f,0.7f,0.7f,
+        -0.5f, -0.5f,0.7f,0.7f,0.7f,
 
         //Line 1
-        -0.5f, 0f,
-        0.5f, 0f,
+        -0.5f, 0f,1f,0f,0f,
+         0.5f, 0f,1f,0f,0f,
 
         // ⽊槌
-        0f, -0.25f,
-        0f, 0.25f,
+         0f,-0.25f,0f,0f,1f,
+         0f, 0.25f,1f,0f,0f
     )
 
     //把tableVerticesWithTriangles从jvm复制到了本地内存
