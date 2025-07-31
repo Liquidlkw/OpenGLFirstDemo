@@ -4,6 +4,7 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
 import android.opengl.GLSurfaceView.Renderer
+import android.opengl.Matrix
 import com.example.openglfirstdemo.util.ShaderHelper
 import com.example.openglfirstdemo.util.TextResReader
 import java.nio.ByteBuffer
@@ -16,9 +17,14 @@ import javax.microedition.khronos.opengles.GL10
  * GLSurfaceView在后台线程中执⾏渲染
  */
 class AirHockeyRender(val context: Context) : Renderer {
-
     //原来a代表attribute,u代表uniform啊
     //--------------------vertex shader Start--------------------
+
+    private val U_MATRIX = "u_Matrix"
+    private var uMatrixLocation: Int = 0
+    private var projectionMatrix: FloatArray = FloatArray(16)
+
+
     private val A_POSITITON = "a_Position"
     private var aPositionLocation: Int = 0
 
@@ -48,7 +54,7 @@ class AirHockeyRender(val context: Context) : Renderer {
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
     private val tableVerticesWithTriangles: FloatArray = floatArrayOf(
-        //Order of coordinates: X, Y, Z,R,G,B
+        //Order of coordinates: X, Y,R,G,B
 
         //Triangle Fan
          0.0f,  0.0f,1f,1f,1f,
@@ -97,14 +103,16 @@ class AirHockeyRender(val context: Context) : Renderer {
 
         //一旦程序链接 就可以获取程序中的attribute和uniform的位置！
 
+        //获得程序中uniform u_Matrix 的位置
+        uMatrixLocation = GLES20.glGetUniformLocation(program, U_MATRIX)
 
-        //获得attribute的位置
+        //获得程序中attribute a_Position 的位置
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITITON)
         //获得uniform的位置
         //⼀个uniform的位置在⼀个程序对象中是唯⼀的,稍后要更新uniform的值会用到
 //        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR)
 
-        //获得attribute的位置 varying a_Color
+        //获得程序中 attribute  a_Color的位置
         aColorLocation = GLES20.glGetAttribLocation(program, A_COLOR)
 
         //关联attribute和顶点数据数组
@@ -146,6 +154,15 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
+        val aspectRatio = if(width>height) width.toFloat() / height else height.toFloat() / width
+        //左手坐标系
+        if(width>height){
+            //横屏
+            Matrix.orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f,-1f, 1f)
+        }else{
+            //竖屏
+            Matrix.orthoM(projectionMatrix, 0, -1f, 1f, /*bottom*/-aspectRatio,/*top*/ aspectRatio,-1f, 1f)
+        }
     }
 
     override fun onDrawFrame(gl: GL10?) {
