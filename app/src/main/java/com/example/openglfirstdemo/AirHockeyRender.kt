@@ -23,6 +23,8 @@ class AirHockeyRender(val context: Context) : Renderer {
     private val U_MATRIX = "u_Matrix"
     private var uMatrixLocation: Int = 0
     private var projectionMatrix: FloatArray = FloatArray(16)
+    private var modelMatrix: FloatArray = FloatArray(16)
+    private var modelProjectionMatrix: FloatArray = FloatArray(16)
 
 
     private val A_POSITITON = "a_Position"
@@ -58,19 +60,19 @@ class AirHockeyRender(val context: Context) : Renderer {
 
         //Triangle Fan
          0.0f,  0.0f,1f,1f,1f,
-        -0.5f, -0.5f,0.7f,0.7f,0.7f,
-         0.5f, -0.5f,0.7f,0.7f,0.7f,
-         0.5f,  0.5f,0.7f,0.7f,0.7f,
-        -0.5f,  0.5f,0.7f,0.7f,0.7f,
-        -0.5f, -0.5f,0.7f,0.7f,0.7f,
+        -0.5f, -0.8f,0.7f,0.7f,0.7f,
+         0.5f, -0.8f,0.7f,0.7f,0.7f,
+         0.5f,  0.8f,0.7f,0.7f,0.7f,
+        -0.5f,  0.8f,0.7f,0.7f,0.7f,
+        -0.5f, -0.8f,0.7f,0.7f,0.7f,
 
         //Line 1
         -0.5f, 0f,1f,0f,0f,
          0.5f, 0f,1f,0f,0f,
 
         // ⽊槌
-         0f,-0.25f,0f,0f,1f,
-         0f, 0.25f,1f,0f,0f
+         0f,-0.4f,0f,0f,1f,
+         0f, 0.4f,1f,0f,0f
     )
 
     //把tableVerticesWithTriangles从jvm复制到了本地内存
@@ -150,10 +152,24 @@ class AirHockeyRender(val context: Context) : Renderer {
         //启用attribute:告诉openGl可以从vertexData读取数据了
         GLES20.glEnableVertexAttribArray(aColorLocation)
 
+
+        //在3D图形学中，我们通常有几种不同的变换矩阵：
+        //Model Matrix（模型矩阵）：控制单个物体的位置、旋转、缩放
+        //View Matrix（视图矩阵）：控制摄像机的视角
+        //Projection Matrix（投影矩阵）：控制3D到2D的投影
+        // 初始化模型矩阵，向下平移2个单位
+        Matrix.setIdentityM(modelMatrix, 0)
+        Matrix.translateM(modelMatrix, 0, 0f, -0.2f, 0f)
+
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
+        //设置2D正交投影，确保图形不会因为屏幕比例而变形  
+        //横屏时：左右范围是 -aspectRatio 到 aspectRatio，上下范围是 -1 到 1
+        //竖屏时：左右范围是 -1 到 1，上下范围是 -aspectRatio 到 aspectRatio
+        //projectionMatrix 是一个 FloatArray(16)，会被填充成一个4x4的正交投影矩阵
+        //用于后续的3D到2D的投影变换
         val aspectRatio = if(width>height) width.toFloat() / height else height.toFloat() / width
         //左手坐标系
         if(width>height){
@@ -163,11 +179,24 @@ class AirHockeyRender(val context: Context) : Renderer {
             //竖屏
             Matrix.orthoM(projectionMatrix, 0, -1f, 1f, /*bottom*/-aspectRatio,/*top*/ aspectRatio,-1f, 1f)
         }
+        
+        // 计算最终的变换矩阵：投影矩阵 × 模型矩阵
+        Matrix.multiplyMM(modelProjectionMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
     }
 
     override fun onDrawFrame(gl: GL10?) {
         //1.清屏
         GLES20.glClear(GL_COLOR_BUFFER_BIT)
+        
+        // 将变换矩阵传递给GPU着色器
+        // 参数详解：
+        // uMatrixLocation: 着色器中uniform变量"u_Matrix"的位置，告诉GPU要更新哪个uniform
+        // 1: 传递1个矩阵（如果要传递多个矩阵，这里就是矩阵的个数）
+        // false: 不转置矩阵（OpenGL期望矩阵是列主序的，所以通常设为false）
+        // viewProjectionMatrix: 包含16个浮点数的4x4变换矩阵数组
+        // 0: 从数组的第0个位置开始读取数据
+        // 作用：将计算好的投影矩阵×模型矩阵的最终变换矩阵发送给GPU，让GPU用它来变换所有顶点
+        GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, modelProjectionMatrix, 0)
 
         //2.绘制table
         //跟新uColorLocation的值为白色
