@@ -5,6 +5,7 @@ import android.opengl.GLES20
 import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
 import android.opengl.GLSurfaceView.Renderer
 import android.opengl.Matrix
+import com.example.openglfirstdemo.util.MatrixHelper
 import com.example.openglfirstdemo.util.ShaderHelper
 import com.example.openglfirstdemo.util.TextResReader
 import java.nio.ByteBuffer
@@ -22,8 +23,14 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     private val U_MATRIX = "u_Matrix"
     private var uMatrixLocation: Int = 0
+    //Model Matrix（模型矩阵）：控制单个物体的位置、旋转、缩放
+    //View Matrix（视图矩阵）：控制摄像机的视角
+    //Projection Matrix（投影矩阵）：控制3D到2D的投影
+    //正交投影矩阵
     private var projectionMatrix: FloatArray = FloatArray(16)
+    //模型矩阵
     private var modelMatrix: FloatArray = FloatArray(16)
+    //模型投影矩阵
     private var modelProjectionMatrix: FloatArray = FloatArray(16)
 
 
@@ -45,7 +52,7 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     //每个顶点有5个分量 x,y,r,g,b
     //位置分量 x,y
-    private val POSITION_COMPONENT_COUNT = 4
+    private val POSITION_COMPONENT_COUNT = 2
    //颜色分量 r,g,b
     private val COLOR_COMPONENT_COUNT = 3
 
@@ -62,20 +69,20 @@ class AirHockeyRender(val context: Context) : Renderer {
         //添加 W = 1.0f
 
         //Triangle Fan
-        0.0f, 0.0f, 0.0f, 1.5F, 1f, 1f, 1f,
-        -0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
-        0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
-        0.5f, 0.8f, 0.0f, 2f, 0.7f, 0.7f, 0.7f,
-        -0.5f, 0.8f, 0.0f, 2f, 0.7f, 0.7f, 0.7f,
-        -0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
+        0.0f,  0.0f,1f,1f,1f,
+        -0.5f, -0.8f,0.7f,0.7f,0.7f,
+        0.5f, -0.8f,0.7f,0.7f,0.7f,
+        0.5f,  0.8f,0.7f,0.7f,0.7f,
+        -0.5f,  0.8f,0.7f,0.7f,0.7f,
+        -0.5f, -0.8f,0.7f,0.7f,0.7f,
 
         //Line 1
-        -0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f,
-        0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f,
+        -0.5f, 0f,1f,0f,0f,
+        0.5f, 0f,1f,0f,0f,
 
         // ⽊槌
-        0f, -0.4f, 0f, 1.25f, 0f, 0f, 1f,
-        0f, 0.4f, 0f, 1.75f, 1f, 0f, 0f
+        0f,-0.4f,0f,0f,1f,
+        0f, 0.4f,1f,0f,0f
     )
 
     //把tableVerticesWithTriangles从jvm复制到了本地内存
@@ -154,36 +161,38 @@ class AirHockeyRender(val context: Context) : Renderer {
         //3.开始读
         //启用attribute:告诉openGl可以从vertexData读取数据了
         GLES20.glEnableVertexAttribArray(aColorLocation)
-
-
-        //在3D图形学中，我们通常有几种不同的变换矩阵：
-        //Model Matrix（模型矩阵）：控制单个物体的位置、旋转、缩放
-        //View Matrix（视图矩阵）：控制摄像机的视角
-        //Projection Matrix（投影矩阵）：控制3D到2D的投影
-        // 初始化模型矩阵，向下平移2个单位
-        Matrix.setIdentityM(modelMatrix, 0)
-        Matrix.translateM(modelMatrix, 0, 0f, -0.2f, 0f)
-
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
-        //设置2D正交投影，确保图形不会因为屏幕比例而变形  
-        //横屏时：左右范围是 -aspectRatio 到 aspectRatio，上下范围是 -1 到 1
-        //竖屏时：左右范围是 -1 到 1，上下范围是 -aspectRatio 到 aspectRatio
-        //projectionMatrix 是一个 FloatArray(16)，会被填充成一个4x4的正交投影矩阵
-        //用于后续的3D到2D的投影变换
-        val aspectRatio = if(width>height) width.toFloat() / height else height.toFloat() / width
-        //左手坐标系
-        if(width>height){
-            //横屏
-            Matrix.orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f,-1f, 1f)
-        }else{
-            //竖屏
-            Matrix.orthoM(projectionMatrix, 0, -1f, 1f, /*bottom*/-aspectRatio,/*top*/ aspectRatio,-1f, 1f)
-        }
+//        //设置2D正交投影，确保图形不会因为屏幕比例而变形
+//        //横屏时：左右范围是 -aspectRatio 到 aspectRatio，上下范围是 -1 到 1
+//        //竖屏时：左右范围是 -1 到 1，上下范围是 -aspectRatio 到 aspectRatio
+//        //projectionMatrix 是一个 FloatArray(16)，会被填充成一个4x4的正交投影矩阵
+//        //用于后续的3D到2D的投影变换
+//        val aspectRatio = if(width>height) width.toFloat() / height else height.toFloat() / width
+//        //左手坐标系
+//        if(width>height){
+//            //横屏
+//            Matrix.orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f,-1f, 1f)
+//        }else{
+//            //竖屏
+//            Matrix.orthoM(projectionMatrix, 0, -1f, 1f, /*bottom*/-aspectRatio,/*top*/ aspectRatio,-1f, 1f)
+//        }
+//
+//        // 计算最终的变换矩阵：投影矩阵 × 模型矩阵
+//        Matrix.multiplyMM(modelProjectionMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
 
-        // 计算最终的变换矩阵：投影矩阵 × 模型矩阵
+
+        //这 会 ⽤ 4 5 度 的 视 野 创 建 ⼀ 个 透 视 投 影 。 这 个 视 椎 体 从 z 值 - 1 的 位 置 开 始 ， 在 z 值
+        //为 - 1 0 的 位 置 结 束
+        MatrixHelper.perspectiveM(projectionMatrix, 45f, width.toFloat() / height.toFloat(), 1f, 10f)
+
+        Matrix.setIdentityM(modelMatrix, 0)
+        //物体初始在 z=0（相机处）或 +Z（身后）→ 看不见/被近裁剪面裁掉。
+        //没调用 Matrix.setLookAtM(...) 时，你的视图矩阵就是单位矩阵。等价于“相机在原点 (0,0,0)，朝 −Z”，
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -5f)
+        // 计算最终的变换矩阵：投影矩阵 × 模型矩阵 顺序很重要！！！
         Matrix.multiplyMM(modelProjectionMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
     }
 
