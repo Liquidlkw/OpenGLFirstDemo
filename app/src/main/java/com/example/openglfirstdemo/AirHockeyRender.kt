@@ -45,7 +45,7 @@ class AirHockeyRender(val context: Context) : Renderer {
 
     //每个顶点有5个分量 x,y,r,g,b
     //位置分量 x,y
-    private val POSITION_COMPONENT_COUNT = 2
+    private val POSITION_COMPONENT_COUNT = 4
    //颜色分量 r,g,b
     private val COLOR_COMPONENT_COUNT = 3
 
@@ -56,23 +56,26 @@ class AirHockeyRender(val context: Context) : Renderer {
     //顶点属性数组
     //逆时针顺序排列顶点=卷曲顺序,可以优化性能
     private val tableVerticesWithTriangles: FloatArray = floatArrayOf(
-        //Order of coordinates: X, Y,R,G,B
+        //Order of coordinates: X, Y,Z,W,R,G,B
+        //如果只写 (X, Y, R, G, B)，OpenGL会自动：
+        //添加 Z = 0.0f
+        //添加 W = 1.0f
 
         //Triangle Fan
-         0.0f,  0.0f,1f,1f,1f,
-        -0.5f, -0.8f,0.7f,0.7f,0.7f,
-         0.5f, -0.8f,0.7f,0.7f,0.7f,
-         0.5f,  0.8f,0.7f,0.7f,0.7f,
-        -0.5f,  0.8f,0.7f,0.7f,0.7f,
-        -0.5f, -0.8f,0.7f,0.7f,0.7f,
+        0.0f, 0.0f, 0.0f, 1.5F, 1f, 1f, 1f,
+        -0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
+        0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
+        0.5f, 0.8f, 0.0f, 2f, 0.7f, 0.7f, 0.7f,
+        -0.5f, 0.8f, 0.0f, 2f, 0.7f, 0.7f, 0.7f,
+        -0.5f, -0.8f, 0.0f, 1f, 0.7f, 0.7f, 0.7f,
 
         //Line 1
-        -0.5f, 0f,1f,0f,0f,
-         0.5f, 0f,1f,0f,0f,
+        -0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f,
+        0.5f, 0f, 0f, 1.5f, 1f, 0f, 0f,
 
         // ⽊槌
-         0f,-0.4f,0f,0f,1f,
-         0f, 0.4f,1f,0f,0f
+        0f, -0.4f, 0f, 1.25f, 0f, 0f, 1f,
+        0f, 0.4f, 0f, 1.75f, 1f, 0f, 0f
     )
 
     //把tableVerticesWithTriangles从jvm复制到了本地内存
@@ -179,7 +182,7 @@ class AirHockeyRender(val context: Context) : Renderer {
             //竖屏
             Matrix.orthoM(projectionMatrix, 0, -1f, 1f, /*bottom*/-aspectRatio,/*top*/ aspectRatio,-1f, 1f)
         }
-        
+
         // 计算最终的变换矩阵：投影矩阵 × 模型矩阵
         Matrix.multiplyMM(modelProjectionMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
     }
@@ -187,7 +190,7 @@ class AirHockeyRender(val context: Context) : Renderer {
     override fun onDrawFrame(gl: GL10?) {
         //1.清屏
         GLES20.glClear(GL_COLOR_BUFFER_BIT)
-        
+
         // 将变换矩阵传递给GPU着色器
         // 参数详解：
         // uMatrixLocation: 着色器中uniform变量"u_Matrix"的位置，告诉GPU要更新哪个uniform
