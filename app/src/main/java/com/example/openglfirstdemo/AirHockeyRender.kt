@@ -26,6 +26,7 @@ class AirHockeyRender(val context: Context) : Renderer {
     //Model Matrix（模型矩阵）：控制单个物体的位置、旋转、缩放
     //View Matrix（视图矩阵）：控制摄像机的视角
     //Projection Matrix（投影矩阵）：控制3D到2D的投影
+    //只要用标准 P * V * M * vertex（a_Position） 就可以了
     //正交投影矩阵
     private var projectionMatrix: FloatArray = FloatArray(16)
     //模型矩阵
@@ -191,7 +192,9 @@ class AirHockeyRender(val context: Context) : Renderer {
         Matrix.setIdentityM(modelMatrix, 0)
         //物体初始在 z=0（相机处）或 +Z（身后）→ 看不见/被近裁剪面裁掉。
         //没调用 Matrix.setLookAtM(...) 时，你的视图矩阵就是单位矩阵。等价于“相机在原点 (0,0,0)，朝 −Z”，
-        Matrix.translateM(modelMatrix, 0, 0f, 0f, -5f)
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -4f)
+        //绕X轴旋转-60度
+        Matrix.rotateM(modelMatrix, 0, -60f, 1f, 0f,0f)
         // 计算最终的变换矩阵：投影矩阵 × 模型矩阵 顺序很重要！！！
         Matrix.multiplyMM(modelProjectionMatrix, 0, projectionMatrix, 0, modelMatrix, 0)
     }
